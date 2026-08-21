@@ -17,7 +17,7 @@
         <!-- Featured Image -->
         @if($beach->featured_image)
             <div class="mb-8 rounded-lg overflow-hidden">
-                <img src="{{ $beach->featured_image }}" alt="{{ $beach->name }}" class="w-full h-96 object-cover">
+                <img src="{{ asset('assets/images/beaches/' . $beach->featured_image) }}" alt="{{ $beach->name }}" class="w-full h-96 object-cover">
             </div>
         @else
             <div class="mb-8 h-96 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center">

@@ -6,11 +6,14 @@ use App\Models\Beach;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 #[Layout('layouts.app')]
 #[Title('Beach Form')]
 class Form extends Component
 {
+    use WithFileUploads;
+
     public ?Beach $beach = null;
 
     public string $name = '';
@@ -25,6 +28,7 @@ class Form extends Component
     public ?float $ticket_price_max = null;
     public ?array $facilities = null;
     public ?string $featured_image = null;
+    public $image;
     public ?string $video = null;
     public ?string $google_maps_url = null;
     public ?string $contact = null;
@@ -78,6 +82,26 @@ class Form extends Component
     {
         $this->validate();
 
+        // Handle image upload
+        if ($this->image) {
+            // Delete old image if exists and updating
+            if ($this->beach && $this->beach->featured_image) {
+                $oldImagePath = public_path('assets/images/beaches/' . $this->beach->featured_image);
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+            }
+
+            // Generate filename from slug
+            $extension = $this->image->getClientOriginalExtension();
+            $filename = $this->slug . '.' . $extension;
+
+            // Store image directly in public folder
+            $this->image->storePubliclyAs('assets/images/beaches', $filename, 'public_uploads');
+            
+            $this->featured_image = $filename;
+        }
+
         $data = [
             'name' => $this->name,
             'slug' => $this->slug,
@@ -128,6 +152,7 @@ class Form extends Component
             'ticket_price_max' => 'nullable|numeric|min:0',
             'facilities' => 'nullable|array',
             'featured_image' => 'nullable|string|max:255',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'video' => 'nullable|string|max:255',
             'google_maps_url' => 'nullable|string',
             'contact' => 'nullable|string|max:255',

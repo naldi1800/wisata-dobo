@@ -51,4 +51,19 @@ class Beach extends Model
             'is_active' => 'boolean',
         ];
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::forceDeleted(function ($beach) {
+            // Delete image file when permanently deleted
+            if ($beach->featured_image) {
+                $imagePath = public_path('assets/images/beaches/' . $beach->featured_image);
+                if (file_exists($imagePath)) {
+                    unlink($imagePath);
+                }
+            }
+        });
+    }
 }

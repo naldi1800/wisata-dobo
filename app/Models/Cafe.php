@@ -44,4 +44,19 @@ class Cafe extends Model
             'is_active' => 'boolean',
         ];
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::forceDeleted(function ($cafe) {
+            // Delete image file when permanently deleted
+            if ($cafe->featured_image) {
+                $imagePath = public_path('assets/images/cafes/' . $cafe->featured_image);
+                if (file_exists($imagePath)) {
+                    unlink($imagePath);
+                }
+            }
+        });
+    }
 }

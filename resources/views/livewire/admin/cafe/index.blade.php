@@ -24,6 +24,7 @@
         <table class="w-full">
             <thead class="bg-zinc-50 dark:bg-zinc-800">
                 <tr>
+                    <th class="px-4 py-3 text-left text-sm font-medium text-zinc-700 dark:text-zinc-300">Image</th>
                     <th class="px-4 py-3 text-left text-sm font-medium text-zinc-700 dark:text-zinc-300">Name</th>
                     <th class="px-4 py-3 text-left text-sm font-medium text-zinc-700 dark:text-zinc-300">Location</th>
                     <th class="px-4 py-3 text-left text-sm font-medium text-zinc-700 dark:text-zinc-300">Hours</th>
@@ -36,6 +37,16 @@
             <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
                 @forelse($cafes as $cafe)
                     <tr class="{{ $cafe->trashed() ? 'opacity-50' : '' }} hover:bg-zinc-50 dark:hover:bg-zinc-800">
+                        <td class="px-4 py-3">
+                            @if($cafe->featured_image)
+                                <img src="{{ asset('assets/images/cafes/' . $cafe->featured_image) }}" alt="{{ $cafe->name }}" class="h-16 w-16 object-cover rounded-lg" />
+                            @else
+                                <div class="h-16 w-16 bg-zinc-200 dark:bg-zinc-700 rounded-lg flex items-center justify-center">
+                                    <span class="text-xs text-zinc-500 dark:text-zinc-400">No img</span>
+                                </div>
+                            @endif
+                        </td>
+
                         <td class="px-4 py-3">
                             <div>
                                 <div class="font-medium text-zinc-900 dark:text-zinc-100">{{ $cafe->name }}</div>
@@ -122,6 +133,11 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                                         </svg>
                                     </button>
+                                    <button wire:click="forceDelete({{ $cafe->id }})" class="text-red-600 hover:text-red-800">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
                                 @else
                                     <button wire:click="delete({{ $cafe->id }})" class="text-red-600 hover:text-red-800">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,7 +150,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-4 py-8 text-center">
+                        <td colspan="8" class="px-4 py-8 text-center">
                             <div class="text-zinc-500">No cafes found</div>
                             <div class="text-sm text-zinc-400">Get started by creating a new cafe.</div>
                         </td>

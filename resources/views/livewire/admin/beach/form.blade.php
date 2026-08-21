@@ -260,11 +260,31 @@
                     <div>
                         <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Featured Image</label>
                         <input
-                            wire:model="featured_image"
-                            type="text"
-                            placeholder="Image URL"
+                            wire:model="image"
+                            type="file"
+                            accept="image/*"
                             class="w-full px-4 py-2 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800"
                         />
+                        @error('image')
+                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                        @enderror
+                        
+                        {{-- Image Preview --}}
+                        @if($image)
+                            <div class="mt-2">
+                                <img src="{{ $image->temporaryUrl() }}" alt="Preview" class="h-48 w-full object-cover rounded-lg" />
+                            </div>
+                        @elseif($beach && $beach->featured_image)
+                            <div class="mt-2">
+                                <img src="{{ asset('assets/images/beaches/' . $beach->featured_image) }}" alt="Current Image" class="h-48 w-full object-cover rounded-lg" />
+                            </div>
+                        @else
+                            <div class="mt-2">
+                                <div class="h-48 w-full bg-zinc-200 dark:bg-zinc-700 rounded-lg flex items-center justify-center">
+                                    <span class="text-zinc-500 dark:text-zinc-400">No image</span>
+                                </div>
+                            </div>
+                        @endif
                     </div>
 
                     <div>

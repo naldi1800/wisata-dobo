@@ -17,7 +17,7 @@
         <!-- Featured Image -->
         @if($cafe->featured_image)
             <div class="mb-8 rounded-lg overflow-hidden">
-                <img src="{{ $cafe->featured_image }}" alt="{{ $cafe->name }}" class="w-full h-96 object-cover">
+                <img src="{{ asset('assets/images/cafes/' . $cafe->featured_image) }}" alt="{{ $cafe->name }}" class="w-full h-96 object-cover">
             </div>
         @else
             <div class="mb-8 h-96 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg flex items-center justify-center">

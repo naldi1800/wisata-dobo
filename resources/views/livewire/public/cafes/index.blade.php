@@ -19,7 +19,7 @@
                     <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-lg overflow-hidden border border-zinc-200 dark:border-zinc-700">
                         @if($cafe->featured_image)
                             <div class="h-48 bg-zinc-200 dark:bg-zinc-700">
-                                <img src="{{ $cafe->featured_image }}" alt="{{ $cafe->name }}" class="w-full h-full object-cover">
+                                <img src="{{ asset('assets/images/cafes/' . $cafe->featured_image) }}" alt="{{ $cafe->name }}" class="w-full h-full object-cover">
                             </div>
                         @else
                             <div class="h-48 bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">

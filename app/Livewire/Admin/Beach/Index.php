@@ -35,6 +35,14 @@ class Index extends Component
         $this->dispatch('toast', 'Beach restored successfully', 'success');
     }
 
+    public function forceDelete($id)
+    {
+        $beach = Beach::withTrashed()->findOrFail($id);
+        $beach->forceDelete();
+        
+        $this->dispatch('toast', 'Beach permanently deleted', 'success');
+    }
+
     public function toggleActive($id)
     {
         $beach = Beach::withTrashed()->findOrFail($id);

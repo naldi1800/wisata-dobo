@@ -19,7 +19,7 @@
                     <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-lg overflow-hidden border border-zinc-200 dark:border-zinc-700">
                         @if($hotel->featured_image)
                             <div class="h-48 bg-zinc-200 dark:bg-zinc-700">
-                                <img src="{{ $hotel->featured_image }}" alt="{{ $hotel->name }}" class="w-full h-full object-cover">
+                                <img src="{{ asset('assets/images/hotels/' . $hotel->featured_image) }}" alt="{{ $hotel->name }}" class="w-full h-full object-cover">
                             </div>
                         @else
                             <div class="h-48 bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center">

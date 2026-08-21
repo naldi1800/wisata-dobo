@@ -35,6 +35,14 @@ class Index extends Component
         $this->dispatch('toast', 'Hotel restored successfully', 'success');
     }
 
+    public function forceDelete($id)
+    {
+        $hotel = Hotel::withTrashed()->findOrFail($id);
+        $hotel->forceDelete();
+        
+        $this->dispatch('toast', 'Hotel permanently deleted', 'success');
+    }
+
     public function toggleActive($id)
     {
         $hotel = Hotel::withTrashed()->findOrFail($id);

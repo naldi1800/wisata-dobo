@@ -33,7 +33,7 @@
                     <div class="bg-white dark:bg-zinc-800 rounded-lg shadow-lg overflow-hidden border border-zinc-200 dark:border-zinc-700">
                         @if($beach['featured_image'])
                             <div class="h-48 bg-zinc-200 dark:bg-zinc-700">
-                                <img src="{{ $beach['featured_image'] }}" alt="{{ $beach['name'] }}" class="w-full h-full object-cover">
+                                <img src="{{ asset('assets/images/beaches/' . $beach['featured_image']) }}" alt="{{ $beach['name'] }}" class="w-full h-full object-cover">
                             </div>
                         @else
                             <div class="h-48 bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">

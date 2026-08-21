@@ -20,7 +20,7 @@
         <!-- Featured Image -->
         @if($hotel->featured_image)
             <div class="mb-8 rounded-lg overflow-hidden">
-                <img src="{{ $hotel->featured_image }}" alt="{{ $hotel->name }}" class="w-full h-96 object-cover">
+                <img src="{{ asset('assets/images/hotels/' . $hotel->featured_image) }}" alt="{{ $hotel->name }}" class="w-full h-96 object-cover">
             </div>
         @else
             <div class="mb-8 h-96 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg flex items-center justify-center">

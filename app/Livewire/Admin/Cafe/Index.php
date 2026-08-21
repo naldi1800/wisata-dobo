@@ -35,6 +35,14 @@ class Index extends Component
         $this->dispatch('toast', 'Cafe restored successfully', 'success');
     }
 
+    public function forceDelete($id)
+    {
+        $cafe = Cafe::withTrashed()->findOrFail($id);
+        $cafe->forceDelete();
+        
+        $this->dispatch('toast', 'Cafe permanently deleted', 'success');
+    }
+
     public function toggleActive($id)
     {
         $cafe = Cafe::withTrashed()->findOrFail($id);

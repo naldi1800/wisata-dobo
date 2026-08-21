@@ -6,11 +6,14 @@ use App\Models\Hotel;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 #[Layout('layouts.app')]
 #[Title('Hotel Form')]
 class Form extends Component
 {
+    use WithFileUploads;
+
     public ?Hotel $hotel = null;
 
     public string $name = '';
@@ -28,6 +31,7 @@ class Form extends Component
     public bool $has_parking = false;
     public bool $has_pool = false;
     public ?string $featured_image = null;
+    public $image;
     public ?string $video = null;
     public ?string $google_maps_url = null;
     public ?string $contact = null;
@@ -74,6 +78,26 @@ class Form extends Component
     public function save()
     {
         $this->validate();
+
+        // Handle image upload
+        if ($this->image) {
+            // Delete old image if exists and updating
+            if ($this->hotel && $this->hotel->featured_image) {
+                $oldImagePath = public_path('assets/images/hotels/' . $this->hotel->featured_image);
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+            }
+
+            // Generate filename from slug
+            $extension = $this->image->getClientOriginalExtension();
+            $filename = $this->slug . '.' . $extension;
+
+            // Store image directly in public folder
+            $this->image->storePubliclyAs('assets/images/hotels', $filename, 'public_uploads');
+            
+            $this->featured_image = $filename;
+        }
 
         $data = [
             'name' => $this->name,
@@ -128,6 +152,7 @@ class Form extends Component
             'has_parking' => 'boolean',
             'has_pool' => 'boolean',
             'featured_image' => 'nullable|string|max:255',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'video' => 'nullable|string|max:255',
             'google_maps_url' => 'nullable|string',
             'contact' => 'nullable|string|max:255',

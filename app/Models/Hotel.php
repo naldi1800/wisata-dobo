@@ -48,4 +48,19 @@ class Hotel extends Model
             'is_active' => 'boolean',
         ];
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::forceDeleted(function ($hotel) {
+            // Delete image file when permanently deleted
+            if ($hotel->featured_image) {
+                $imagePath = public_path('assets/images/hotels/' . $hotel->featured_image);
+                if (file_exists($imagePath)) {
+                    unlink($imagePath);
+                }
+            }
+        });
+    }
 }
