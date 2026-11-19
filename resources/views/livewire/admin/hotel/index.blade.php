@@ -39,7 +39,7 @@
                     <tr class="{{ $hotel->trashed() ? 'opacity-50' : '' }} hover:bg-zinc-50 dark:hover:bg-zinc-800">
                         <td class="px-4 py-3">
                             @if($hotel->featured_image)
-                                <img src="{{ asset('assets/images/hotels/' . $hotel->featured_image) }}" alt="{{ $hotel->name }}" class="h-16 w-16 object-cover rounded-lg" />
+                                <img src="{{ asset('storage/assets/images/hotels/' . $hotel->featured_image) }}" alt="{{ $hotel->name }}" class="h-16 w-16 object-cover rounded-lg" />
                             @else
                                 <div class="h-16 w-16 bg-zinc-200 dark:bg-zinc-700 rounded-lg flex items-center justify-center">
                                     <span class="text-xs text-zinc-500 dark:text-zinc-400">No img</span>

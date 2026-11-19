@@ -7,6 +7,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Storage;
 
 #[Layout('layouts.app')]
 #[Title('Cafe Form')]
@@ -73,23 +74,37 @@ class Form extends Component
     {
         $this->validate();
 
-        // Handle image upload
+        $oldImage = $this->cafe?->featured_image;
+        $newImage = null;
+
+        // Handle image upload (apply Beach pattern)
         if ($this->image) {
-            // Delete old image if exists and updating
-            if ($this->cafe && $this->cafe->featured_image) {
-                $oldImagePath = public_path('assets/images/cafes/' . $this->cafe->featured_image);
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath);
-                }
-            }
+            $filename = $this->slug . '-' . now()->format('dmy-His') . '.webp';
 
-            // Generate filename from slug
-            $extension = $this->image->getClientOriginalExtension();
-            $filename = $this->slug . '.' . $extension;
+            $sourcePath = $this->image->getRealPath();
 
-            // Store image directly in public folder
-            $this->image->storePubliclyAs('assets/images/cafes', $filename, 'public_uploads');
-            
+            $mime = mime_content_type($sourcePath);
+
+            $source = match ($mime) {
+                'image/jpeg' => imagecreatefromjpeg($sourcePath),
+                'image/png' => imagecreatefrompng($sourcePath),
+                'image/webp' => imagecreatefromwebp($sourcePath),
+                default => throw new \Exception('Format gambar tidak didukung: ' . $mime),
+            };
+
+            ob_start();
+
+            $webpResult = imagewebp($source, null, 85);
+
+            $webp = ob_get_clean();
+
+            imagedestroy($source);
+
+            $storagePath = 'assets/images/cafes/' . $filename;
+
+            Storage::disk('public')->put($storagePath, $webp);
+
+            $newImage = $filename;
             $this->featured_image = $filename;
         }
 
@@ -116,9 +131,16 @@ class Form extends Component
 
         if ($this->cafe) {
             $this->cafe->update($data);
+
+            // After DB update, delete old image if a new one was saved
+            if ($newImage && $oldImage && $oldImage !== $newImage) {
+                Storage::disk('public')->delete('assets/images/cafes/' . $oldImage);
+            }
+
             $this->dispatch('toast', 'Cafe updated successfully', 'success');
         } else {
             Cafe::create($data);
+
             $this->dispatch('toast', 'Cafe created successfully', 'success');
         }
 

@@ -7,6 +7,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Storage;
 
 #[Layout('layouts.app')]
 #[Title('Hotel Form')]
@@ -79,23 +80,37 @@ class Form extends Component
     {
         $this->validate();
 
-        // Handle image upload
+        $oldImage = $this->hotel?->featured_image;
+        $newImage = null;
+
+        // Handle image upload (apply Beach pattern)
         if ($this->image) {
-            // Delete old image if exists and updating
-            if ($this->hotel && $this->hotel->featured_image) {
-                $oldImagePath = public_path('assets/images/hotels/' . $this->hotel->featured_image);
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath);
-                }
-            }
+            $filename = $this->slug . '-' . now()->format('dmy-His') . '.webp';
 
-            // Generate filename from slug
-            $extension = $this->image->getClientOriginalExtension();
-            $filename = $this->slug . '.' . $extension;
+            $sourcePath = $this->image->getRealPath();
 
-            // Store image directly in public folder
-            $this->image->storePubliclyAs('assets/images/hotels', $filename, 'public_uploads');
-            
+            $mime = mime_content_type($sourcePath);
+
+            $source = match ($mime) {
+                'image/jpeg' => imagecreatefromjpeg($sourcePath),
+                'image/png' => imagecreatefrompng($sourcePath),
+                'image/webp' => imagecreatefromwebp($sourcePath),
+                default => throw new \Exception('Format gambar tidak didukung: ' . $mime),
+            };
+
+            ob_start();
+
+            $webpResult = imagewebp($source, null, 85);
+
+            $webp = ob_get_clean();
+
+            imagedestroy($source);
+
+            $storagePath = 'assets/images/hotels/' . $filename;
+
+            Storage::disk('public')->put($storagePath, $webp);
+
+            $newImage = $filename;
             $this->featured_image = $filename;
         }
 
@@ -125,6 +140,11 @@ class Form extends Component
 
         if ($this->hotel) {
             $this->hotel->update($data);
+
+            if ($newImage && $oldImage && $oldImage !== $newImage) {
+                Storage::disk('public')->delete('assets/images/hotels/' . $oldImage);
+            }
+
             $this->dispatch('toast', 'Hotel updated successfully', 'success');
         } else {
             Hotel::create($data);

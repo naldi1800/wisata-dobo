@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Cafe extends Model
 {
@@ -50,12 +51,9 @@ class Cafe extends Model
         parent::boot();
 
         static::forceDeleted(function ($cafe) {
-            // Delete image file when permanently deleted
+            // Delete image file when permanently deleted (public disk)
             if ($cafe->featured_image) {
-                $imagePath = public_path('assets/images/cafes/' . $cafe->featured_image);
-                if (file_exists($imagePath)) {
-                    unlink($imagePath);
-                }
+                Storage::disk('public')->delete('assets/images/cafes/' . $cafe->featured_image);
             }
         });
     }

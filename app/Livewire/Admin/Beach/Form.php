@@ -7,6 +7,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Storage; 
 
 #[Layout('layouts.app')]
 #[Title('Beach Form')]
@@ -77,31 +78,146 @@ class Form extends Component
             $this->slug = \Illuminate\Support\Str::slug($value);
         }
     }
+    
+    public function updatedImage()
+    {
+        // dd([
+        //     'image' => $this->image,
+        //     'type' => is_object($this->image)
+        //         ? get_class($this->image)
+        //         : gettype($this->image),
+        // ]);
+    }
 
     public function save()
     {
         $this->validate();
-
-        // Handle image upload
+    
+        $oldImage = $this->beach?->featured_image;
+        $newImage = null;
+        $arr = [];
+    
+        /*
+        |--------------------------------------------------------------------------
+        | Handle Image Upload
+        |--------------------------------------------------------------------------
+        */
         if ($this->image) {
-            // Delete old image if exists and updating
-            if ($this->beach && $this->beach->featured_image) {
-                $oldImagePath = public_path('assets/images/beaches/' . $this->beach->featured_image);
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath);
-                }
+        
+            $arr[] = 'image ada';
+        
+            $filename = $this->slug . '-' . now()->format('dmy-His') . '.webp';
+        
+            $sourcePath = $this->image->getRealPath();
+        
+            $arr[] = 'source: ' . $sourcePath;
+            $arr[] = 'source exists: ' . (file_exists($sourcePath) ? 'YES' : 'NO');
+            $arr[] = 'source size: ' . filesize($sourcePath);
+        
+            $mime = mime_content_type($sourcePath);
+        
+            $arr[] = 'mime: ' . $mime;
+        
+            /*
+            |--------------------------------------------------------------------------
+            | Create GD Image
+            |--------------------------------------------------------------------------
+            */
+        
+            $source = match ($mime) {
+        
+                'image/jpeg' => imagecreatefromjpeg($sourcePath),
+        
+                'image/png' => imagecreatefrompng($sourcePath),
+        
+                'image/webp' => imagecreatefromwebp($sourcePath),
+        
+                default => throw new \Exception(
+                    'Format gambar tidak didukung: ' . $mime
+                ),
+            };
+        
+            $arr[] = 'GD source berhasil dibuat';
+        
+            /*
+            |--------------------------------------------------------------------------
+            | Convert to WebP
+            |--------------------------------------------------------------------------
+            */
+        
+            ob_start();
+        
+            $webpResult = imagewebp(
+                $source,
+                null,
+                85
+            );
+        
+            $webp = ob_get_clean();
+        
+            $arr[] = 'imagewebp result: ' . ($webpResult ? 'TRUE' : 'FALSE');
+            $arr[] = 'webp size: ' . strlen($webp);
+        
+            /*
+            |--------------------------------------------------------------------------
+            | Save WebP
+            |--------------------------------------------------------------------------
+            */
+        
+            $storagePath = 'assets/images/beaches/' . $filename;
+        
+            $storageResult = Storage::disk('public')->put(
+                $storagePath,
+                $webp
+            );
+        
+            $arr[] = 'storage put: ' . ($storageResult ? 'TRUE' : 'FALSE');
+        
+            /*
+            |--------------------------------------------------------------------------
+            | Verify File
+            |--------------------------------------------------------------------------
+            */
+        
+            $exists = Storage::disk('public')->exists($storagePath);
+        
+            $arr[] = 'storage exists: ' . ($exists ? 'YES' : 'NO');
+        
+            if ($exists) {
+        
+                $arr[] = 'storage size: ' .
+                    Storage::disk('public')->size($storagePath);
             }
-
-            // Generate filename from slug
-            $extension = $this->image->getClientOriginalExtension();
-            $filename = $this->slug . '.' . $extension;
-
-            // Store image directly in public folder
-            $this->image->storePubliclyAs('assets/images/beaches', $filename, 'public_uploads');
-            
+        
+            /*
+            |--------------------------------------------------------------------------
+            | Destroy GD Resource
+            |--------------------------------------------------------------------------
+            */
+        
+            imagedestroy($source);
+        
+            $arr[] = 'destroy source';
+        
+            /*
+            |--------------------------------------------------------------------------
+            | Set Database Value
+            |--------------------------------------------------------------------------
+            */
+        
+            $newImage = $filename;
+        
             $this->featured_image = $filename;
+        
+            $arr[] = 'featured_image: ' . $this->featured_image;
         }
-
+        array_push($arr, 'image selesai di proses');
+    
+        /*
+        |--------------------------------------------------------------------------
+        | Prepare Data
+        |--------------------------------------------------------------------------
+        */
         $data = [
             'name' => $this->name,
             'slug' => $this->slug,
@@ -125,15 +241,46 @@ class Form extends Component
             'beauty' => $this->beauty,
             'is_active' => $this->is_active,
         ];
-
+        
+        array_push($arr, 'data load');
+    
+        /*
+        |--------------------------------------------------------------------------
+        | Save Beach
+        |--------------------------------------------------------------------------
+        */
         if ($this->beach) {
+    
             $this->beach->update($data);
-            $this->dispatch('toast', 'Beach updated successfully', 'success');
+            array_push($arr, 'data terupload');
+    
+            // Setelah database berhasil di-update,
+            // baru hapus gambar lama
+            if ($newImage && $oldImage && $oldImage !== $newImage) {
+                Storage::disk('public')->delete(
+                    'assets/images/beaches/' . $oldImage
+                );
+            }
+            
+            array_push($arr, 'gambar dihapus');
+            // dd($arr);
+            $this->dispatch(
+                'toast',
+                'Beach updated successfully',
+                'success'
+            );
+    
         } else {
+    
             Beach::create($data);
-            $this->dispatch('toast', 'Beach created successfully', 'success');
+    
+            $this->dispatch(
+                'toast',
+                'Beach created successfully',
+                'success'
+            );
         }
-
+    
         return redirect()->route('admin.beaches.index');
     }
 
@@ -157,10 +304,10 @@ class Form extends Component
             'google_maps_url' => 'nullable|string',
             'contact' => 'nullable|string|max:255',
             'rating' => 'nullable|numeric|between:0,5',
-            'cleanliness' => 'required|integer|between:1,5',
-            'facility_score' => 'required|integer|between:1,5',
-            'accessibility' => 'required|integer|between:1,5',
-            'beauty' => 'required|integer|between:1,5',
+            'cleanliness' => 'required|integer|between:1,10',
+            'facility_score' => 'required|integer|between:1,10',
+            'accessibility' => 'required|integer|between:1,10',
+            'beauty' => 'required|integer|between:1,10',
             'is_active' => 'boolean',
         ];
     }

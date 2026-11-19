@@ -187,32 +187,46 @@
                     <div>
                         <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Featured Image</label>
                         <input
-                            wire:model="image"
-                            type="file"
-                            accept="image/*"
+                                type="file"
+                                wire:model="image"
+                                accept="image/jpeg,image/png,image/webp"
                             class="w-full px-4 py-2 border border-zinc-200 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800"
                         />
-                        @error('image')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                        @enderror
+
+                            {{-- Uploading --}}
+                            <div wire:loading wire:target="image" class="mt-2 text-sm text-blue-600">
+                                Uploading image...
+                            </div>
+
+                            {{-- Ready --}}
+                            <div wire:loading.remove wire:target="image" class="mt-2 text-sm text-green-600">
+                                Ready
+                            </div>
+
+                            @error('image')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
                         
-                        {{-- Image Preview --}}
-                        @if($image)
-                            <div class="mt-2">
-                                <img src="{{ $image->temporaryUrl() }}" alt="Preview" class="h-48 w-full object-cover rounded-lg" />
+                            {{-- Preview --}}
+                            <div wire:loading.remove wire:target="image">
+                                @if($image)
+                                    <div class="mt-2">
+                                        <p class="mb-2 text-sm text-green-600">File berhasil diterima Livewire</p>
+                                        <img src="{{ $image->temporaryUrl() }}" alt="Preview" class="h-48 w-full object-cover rounded-lg" />
+                                    </div>
+                                @elseif($cafe && $cafe->featured_image)
+                                    <div class="mt-2">
+                                        <img src="{{ asset('storage/assets/images/cafes/' . $cafe->featured_image) }}" alt="Current Image" class="h-48 w-full object-cover rounded-lg" />
+                                    </div>
+                                @else
+                                    <div class="mt-2">
+                                        <div class="h-48 w-full bg-zinc-200 dark:bg-zinc-700 rounded-lg flex items-center justify-center">
+                                            <span class="text-zinc-500 dark:text-zinc-400">No image</span>
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
-                        @elseif($cafe && $cafe->featured_image)
-                            <div class="mt-2">
-                                <img src="{{ asset('assets/images/cafes/' . $cafe->featured_image) }}" alt="Current Image" class="h-48 w-full object-cover rounded-lg" />
-                            </div>
-                        @else
-                            <div class="mt-2">
-                                <div class="h-48 w-full bg-zinc-200 dark:bg-zinc-700 rounded-lg flex items-center justify-center">
-                                    <span class="text-zinc-500 dark:text-zinc-400">No image</span>
-                                </div>
-                            </div>
-                        @endif
-                    </div>
+                        </div>
 
                     <div>
                         <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Google Maps URL</label>
@@ -299,9 +313,19 @@
                     Cancel
                 </a>
 
-                <button type="submit"
-                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                    {{ $cafe ? 'Update Cafe' : 'Create Cafe' }}
+                <button
+                    type="submit"
+                    wire:loading.attr="disabled"
+                    wire:target="image"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    <span wire:loading.remove wire:target="image">
+                        {{ $cafe ? 'Update Cafe' : 'Create Cafe' }}
+                    </span>
+
+                    <span wire:loading wire:target="image">
+                        Uploading image...
+                    </span>
                 </button>
             </div>
         </div>

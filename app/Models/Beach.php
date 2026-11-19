@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Beach extends Model
 {
@@ -57,12 +58,9 @@ class Beach extends Model
         parent::boot();
 
         static::forceDeleted(function ($beach) {
-            // Delete image file when permanently deleted
+            // Delete image file when permanently deleted (public disk)
             if ($beach->featured_image) {
-                $imagePath = public_path('assets/images/beaches/' . $beach->featured_image);
-                if (file_exists($imagePath)) {
-                    unlink($imagePath);
-                }
+                Storage::disk('public')->delete('assets/images/beaches/' . $beach->featured_image);
             }
         });
     }
